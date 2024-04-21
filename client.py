@@ -2,6 +2,7 @@ from flask import Flask, jsonify, request
 import requests
 import datetime
 import random
+import time
 
 app = Flask(__name__)
 
@@ -33,6 +34,19 @@ def ajustar_hora():
     ajustar_hora_servidor(diferencia_tiempo)
     return 'Hora ajustada correctamente'
 
+
+# Ruta para healthcheck
+@app.route('/coordinador/healthcheck')
+def healthcheck():
+    print("Solicitud de healthcheck entrante...")
+
+    # Generar un tiempo aleatorio entre 1 y 5 segundos
+    random_time = random.randint(1, 5)
+
+    # Esperar el tiempo aleatorio antes de enviar la respuesta
+    time.sleep(random_time)
+
+    return jsonify(status="OK")
 
 
 if __name__ == '__main__':
