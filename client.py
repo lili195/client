@@ -1,20 +1,25 @@
 from flask import Flask, jsonify, request
-import requests
+from dotenv import load_dotenv
 import datetime
 import random
 import time
+import os
 
 app = Flask(__name__)
+load_dotenv()
+PORT = os.getenv('PORT')
+
+print("Cliente corriendo en el puerto: %s" % PORT)
 
 @app.route('/')
 def hello_client():
-    return 'Hello CLIENT!'
+    return 'Hello this is the CLIENT node!'
 
 # Endpoint para obtener la hora del servidor
 @app.route('/obtenerHora')
 def obtener_hora():
     hora_actual_servidor = datetime.datetime.now()
-    desfase_aleatorio_segundos = random.randint(0, 5 * 60)
+    desfase_aleatorio_segundos = random.randint(0, 5 * 100)
     hora_servidor_con_desfase = hora_actual_servidor + datetime.timedelta(seconds=desfase_aleatorio_segundos)
     hora_servidor_con_desfase_str = hora_servidor_con_desfase.strftime('%Y-%m-%d %H:%M:%S')
     return jsonify({'horaServidor': hora_servidor_con_desfase_str})
@@ -50,4 +55,4 @@ def healthcheck():
 
 
 if __name__ == '__main__':
-    app.run(port=16000)
+    app.run(port=PORT)
