@@ -14,6 +14,10 @@ PORT = os.getenv('PORT')
 
 print("Cliente corriendo en el puerto: %s" % PORT)
 
+@app.route('/')
+def index():
+    return render_template('index.html')
+
 
 hora_coordinador = None  
 
