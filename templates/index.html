@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cliente Flask</title>
+    <style>
+        /* Estilos CSS */
+        #hora-cliente {
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+
+        #logs {
+            font-family: monospace;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="hora-cliente"></div>
+    <div id="logs"></div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.4.1/socket.io.js"></script>
+    <script>
+
+        var socket = io();
+
+        socket.on('connect', function () {
+            console.log('Conectado al servidor de WebSockets');
+        });
+
+        socket.on('logs', function (data) {
+            // Mostrar los logs en alguna parte de tu interfaz
+            console.log(data);
+        });
+        // Función para hacer una solicitud GET a la ruta /horaCliente
+        function obtenerHoraCliente() {
+            fetch('/horaCliente')
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('hora-cliente').textContent = 'Hora del cliente: ' + data.horaCliente;
+                })
+                .catch(error => console.error('Error al obtener la hora del cliente:', error));
+        }
+
+        // Obtener la hora del cliente y los logs cuando la página se carga
+        window.onload = function () {
+            obtenerHoraCliente();
+        };
+
+        // Actualizar la hora del cliente y los logs cada 5 segundos
+        setInterval(function () {
+            obtenerHoraCliente();
+        }, 5000);
+    </script>
+</body>
+
+</html>
