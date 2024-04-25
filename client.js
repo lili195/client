@@ -36,9 +36,6 @@ function printLog(message) {
     io.emit('logs', { logs: logMessage });
 }
 
-function sendLogsToClient(logs) {
-    io.emit('logs', { logs: logs });
-}
 
 const formatearHora = (hora) => {
     const fecha = new Date(hora);
@@ -47,7 +44,6 @@ const formatearHora = (hora) => {
 };
 
 app.get('/horaCliente', (req, res) => {
-    printLog('Solicitud GET de hora del cliente')
     const horaCliente = new Date();
     const desfase_aleatorio = Math.floor(Math.random() * 300000);
     horaCliente.setSeconds(horaCliente.getSeconds() + desfase_aleatorio);
@@ -61,7 +57,6 @@ let hora_coordinador = 0;
 
 
 app.post('/horaCoordinador', (req, res) => {
-    printLog('Solicitud POST recibiendo hora del coordinador')
     try {
         const hora_coordinador_str = req.body.horaCliente;
 
@@ -78,36 +73,96 @@ app.post('/horaCoordinador', (req, res) => {
 
 function obtenerHora() {
     const horaCliente = new Date();
-    const desfase_aleatorio = Math.floor(Math.random() * 300000) + 300000; // Rango de 5 a 10 minutos
-    horaCliente.setMilliseconds(horaCliente.getMilliseconds() + desfase_aleatorio);
+    const desfase_aleatorio = Math.floor(Math.random() * 600001) - 300000; // Rango de -5 a +5 minutos
+    horaCliente.setTime(horaCliente.getTime() + desfase_aleatorio);
     return horaCliente;
 }
 
+let horaCliente = null
+
 app.post('/diferenciaHora', (req, res) => {
-    printLog('Calculando la diferencia entre la hora propia y del coordinador');
     try {
+
         const horaCoordinador = new Date(hora_coordinador);
-        printLog('Hora del coordinador --> ' + horaCoordinador);
 
-        const horaCliente = obtenerHora();
-        printLog('Hora del cliente --> ' + formatearHora(horaCliente));
+        horaCliente = obtenerHora();
+        printLog('Hora del cliente  --> ' + formatearHora(horaCliente));
 
-        printLog(`CALCULANDO DIFERENCIA --> Hora del cliente: ${formatearHora(horaCliente)} - Hora del coordinador: ${formatearHora(horaCoordinador)}`);
 
-        let diferenciaMinutos = Math.round((horaCliente - horaCoordinador) / (1000 * 60)); // Redondear la diferencia en minutos
+        const diferenciaHora = (horaCliente.getTime() - horaCoordinador.getTime()) / (1000 * 60);
 
-        printLog(`Diferencia de hora enviada al coordinador: ${diferenciaMinutos} minutos`);
+        printLog(`CALCULANDO DIFERENCIA --> Hora del cliente: ${formatearHora(horaCliente.getTime())} - Hora del coordinador: ${formatearHora(horaCoordinador.getTime())}`);
 
-        res.status(200).json({ diferenciaHora: diferenciaMinutos });
+        res.send(String(diferenciaHora));
+
+        printLog(`Diferencia de hora enviada al coordinador: ${diferenciaHora} minutos `);
     } catch (error) {
         console.error('Error al calcular y enviar la diferencia de hora:', error);
         res.status(500).json({ error: 'Error al calcular y enviar la diferencia de hora' });
     }
 });
 
+app.post('/ajustarHora', (req, res) => {
 
+    try {
+        console.log('--------------------------------------------------------')
+        const tiempoAjuste = req.body.ajuste
+        printLog(`Tiempo a ajustar: ${tiempoAjuste}`)
+        ajustarCliente(tiempoAjuste)
 
+        res.status(200).send("YESSS")
+    } catch (error) {
+        console.error('Error al actualizar la hora', error);
+        res.status(500).json({ error: 'Error al actualizar la hora' });
+    }
+})
 
+const ajustarCliente = async (tiempoAjuste) => {
+    let adjustedTimeClient = new Date(horaCliente); // Crear una nueva instancia de Date para evitar modificar la hora original
+
+    // Obtener los componentes de tiempo actuales
+    const horas = adjustedTimeClient.getHours();
+    const minutos = adjustedTimeClient.getMinutes();
+    const segundos = adjustedTimeClient.getSeconds();
+    const milisegundos = adjustedTimeClient.getMilliseconds();
+
+    // Calcular la cantidad total de minutos a agregar
+    const minutosAgregar = Math.floor(tiempoAjuste);
+    const segundosAgregar = Math.floor((tiempoAjuste - minutosAgregar) * 60); // Convertir el exceso de minutos en segundos
+    const milisegundosAgregar = Math.floor((tiempoAjuste - minutosAgregar - segundosAgregar / 60) * 60000); // Convertir el exceso de segundos en milisegundos
+
+    // Sumar los minutos, segundos y milisegundos
+    let minutosActualizados = minutos + minutosAgregar;
+    let segundosActualizados = segundos + segundosAgregar;
+    let milisegundosActualizados = milisegundos + milisegundosAgregar;
+
+    // Ajustar los segundos si hay exceso de milisegundos
+    if (milisegundosActualizados >= 1000) {
+        segundosActualizados += Math.floor(milisegundosActualizados / 1000);
+        milisegundosActualizados %= 1000;
+    }
+
+    // Ajustar los minutos si hay exceso de segundos
+    if (segundosActualizados >= 60) {
+        minutosActualizados += Math.floor(segundosActualizados / 60);
+        segundosActualizados %= 60;
+    }
+
+    // Ajustar las horas si hay exceso de minutos
+    if (minutosActualizados >= 60) {
+        horas += Math.floor(minutosActualizados / 60);
+        minutosActualizados %= 60;
+    }
+
+    // Establecer los nuevos valores de hora
+    adjustedTimeClient.setHours(horas);
+    adjustedTimeClient.setMinutes(minutosActualizados);
+    adjustedTimeClient.setSeconds(segundosActualizados);
+    adjustedTimeClient.setMilliseconds(milisegundosActualizados);
+
+    horaActualizada = adjustedTimeClient;
+    printLog(`Hora del cliente actualizada: ${formatearHora(horaActualizada)}`);
+}
 
 app.get('/coordinador/healthcheck', (req, res) => {
     printLog("Solicitud de healthcheck entrante...")
