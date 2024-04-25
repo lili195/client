@@ -28,6 +28,10 @@ const io = new Server(server, {
 });
 
 
+let hora_coordinador = 0;
+let horaCliente = null;
+
+
 function printLog(message) {
     const date = new Date().toLocaleDateString();
     const time = new Date().toLocaleTimeString();
@@ -44,16 +48,14 @@ const formatearHora = (hora) => {
 };
 
 app.get('/horaCliente', (req, res) => {
-    const horaCliente = new Date();
-    const desfase_aleatorio = Math.floor(Math.random() * 300000);
-    horaCliente.setSeconds(horaCliente.getSeconds() + desfase_aleatorio);
-
+    horaCliente = new Date();
+    horaCliente = obtenerHora();
     const horaClienteStr = formatearHora(horaCliente);
     res.json({ horaCliente: horaClienteStr });
 });
 
 
-let hora_coordinador = 0;
+
 
 
 app.post('/horaCoordinador', (req, res) => {
@@ -72,24 +74,25 @@ app.post('/horaCoordinador', (req, res) => {
 
 
 function obtenerHora() {
-    const horaCliente = new Date();
-    const desfase_aleatorio = Math.floor(Math.random() * 600001) - 300000; // Rango de -5 a +5 minutos
-    horaCliente.setTime(horaCliente.getTime() + desfase_aleatorio);
+    horaCliente = new Date();
+    const desfase_aleatorio = Math.floor(Math.random() * 300000); // Rango de 0 a 5 minutos
+    horaCliente.setMilliseconds(horaCliente.getMilliseconds() + desfase_aleatorio);
     return horaCliente;
 }
-
-let horaCliente = null
 
 app.post('/diferenciaHora', (req, res) => {
     try {
 
         const horaCoordinador = new Date(hora_coordinador);
-
+        
+        horaCliente = new Date();
         horaCliente = obtenerHora();
+
+        //const horaCliente = obtenerHora();
         printLog('Hora del cliente  --> ' + formatearHora(horaCliente));
 
 
-        const diferenciaHora = (horaCliente.getTime() - horaCoordinador.getTime()) / (1000 * 60);
+        const diferenciaHora = (horaCliente.getTime() - horaCoordinador.getTime())/(1000*60);
 
         printLog(`CALCULANDO DIFERENCIA --> Hora del cliente: ${formatearHora(horaCliente.getTime())} - Hora del coordinador: ${formatearHora(horaCoordinador.getTime())}`);
 
@@ -105,7 +108,7 @@ app.post('/diferenciaHora', (req, res) => {
 app.post('/ajustarHora', (req, res) => {
 
     try {
-        console.log('--------------------------------------------------------')
+        printLog('--------------------------------------------------------')
         const tiempoAjuste = req.body.ajuste
         printLog(`Tiempo a ajustar: ${tiempoAjuste}`)
         ajustarCliente(tiempoAjuste)
@@ -164,7 +167,10 @@ const ajustarCliente = async (tiempoAjuste) => {
 
     horaActualizada = adjustedTimeClient;
     printLog(`Hora del cliente actualizada: ${formatearHora(horaActualizada)}`);
+    io.emit('ajusteHora', { nuevaHora: formatearHora(horaActualizada) });
 }
+
+
 
 app.get('/coordinador/healthcheck', (req, res) => {
     printLog("Solicitud de healthcheck entrante...")
@@ -189,7 +195,15 @@ io.on('connection', socket => {
     });
 });
 
+app.get('/infoServidor', (req, res) => {
+    res.json(serverUrl);
+});
+
+const serverUrl = `http://localhost:${port_server}`;
+
+
 
 server.listen(port_server, () => {
-    console.log(`Example app listening on port ${port_server}`)
-})
+    console.log(`Cliente ejecutando desde el puerto: ${port_server} `);
+    console.log(`Accede al servidor desde tu navegador utilizando la siguiente URL: ${serverUrl}`);
+});
