@@ -2,12 +2,11 @@
   "name": "client",
   "version": "1.0.0",
   "description": "",
-  "main": "client.js",
+  "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "devStart": "nodemon run client.js"
   },
-  "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
@@ -15,7 +14,10 @@
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
+    "http": "^0.0.1-security",
     "nodemon": "^3.1.0",
+    "random": "^4.1.0",
+    "socket-io": "^1.0.0",
     "socket.io": "^4.7.5"
   }
 }
