@@ -84,6 +84,8 @@ app.post('/diferenciaHora', (req, res) => {
     try {
 
         const horaCoordinador = new Date(hora_coordinador);
+        
+        horaCliente = new Date();
         horaCliente = obtenerHora();
 
         //const horaCliente = obtenerHora();
