@@ -46,14 +46,12 @@ const formatearHora = (hora) => {
     return horaFormateada;
 };
 
-
 app.get('/horaCliente', (req, res) => {
     const horaCliente = new Date();
     const desfase_aleatorio = Math.floor(Math.random() * 300000);
     horaCliente.setSeconds(horaCliente.getSeconds() + desfase_aleatorio);
 
     const horaClienteStr = formatearHora(horaCliente);
-
     res.json({ horaCliente: horaClienteStr });
 });
 
@@ -64,6 +62,7 @@ let hora_coordinador = 0;
 app.post('/horaCoordinador', (req, res) => {
     try {
         const hora_coordinador_str = req.body.horaCliente;
+
         hora_coordinador = hora_coordinador_str;
 
         printLog('Hora del coordinador recibida correctamente --> ' + formatearHora(hora_coordinador));
@@ -133,6 +132,3 @@ io.on('connection', socket => {
 server.listen(port_server, () => {
     console.log(`Example app listening on port ${port_server}`)
 })
-
-
-
