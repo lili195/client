@@ -47,6 +47,7 @@ const formatearHora = (hora) => {
 };
 
 app.get('/horaCliente', (req, res) => {
+    printLog('Solicitud GET de hora del cliente')
     const horaCliente = new Date();
     const desfase_aleatorio = Math.floor(Math.random() * 300000);
     horaCliente.setSeconds(horaCliente.getSeconds() + desfase_aleatorio);
@@ -60,6 +61,7 @@ let hora_coordinador = 0;
 
 
 app.post('/horaCoordinador', (req, res) => {
+    printLog('Solicitud POST recibiendo hora del coordinador')
     try {
         const hora_coordinador_str = req.body.horaCliente;
 
@@ -76,32 +78,34 @@ app.post('/horaCoordinador', (req, res) => {
 
 function obtenerHora() {
     const horaCliente = new Date();
-    const desfase_aleatorio = Math.floor(Math.random() * 300000); // Rango de 0 a 5 minutos
+    const desfase_aleatorio = Math.floor(Math.random() * 300000) + 300000; // Rango de 5 a 10 minutos
     horaCliente.setMilliseconds(horaCliente.getMilliseconds() + desfase_aleatorio);
     return horaCliente;
 }
 
 app.post('/diferenciaHora', (req, res) => {
+    printLog('Calculando la diferencia entre la hora propia y del coordinador');
     try {
-
         const horaCoordinador = new Date(hora_coordinador);
+        printLog('Hora del coordinador --> ' + horaCoordinador);
 
         const horaCliente = obtenerHora();
-        printLog('Hora del cliente  --> ' + formatearHora(horaCliente));
+        printLog('Hora del cliente --> ' + formatearHora(horaCliente));
 
+        printLog(`CALCULANDO DIFERENCIA --> Hora del cliente: ${formatearHora(horaCliente)} - Hora del coordinador: ${formatearHora(horaCoordinador)}`);
 
-        const diferenciaSegundos = (horaCliente.getTime() - horaCoordinador.getTime())/(1000*60);
+        let diferenciaMinutos = Math.round((horaCliente - horaCoordinador) / (1000 * 60)); // Redondear la diferencia en minutos
 
-        printLog(`CALCULANDO DIFERENCIA --> Hora del cliente: ${formatearHora(horaCliente.getTime())} - Hora del coordinador: ${formatearHora(horaCoordinador.getTime())}`);
+        printLog(`Diferencia de hora enviada al coordinador: ${diferenciaMinutos} minutos`);
 
-        res.send(`Diferencia de hora: ${diferenciaSegundos} segundos`);
-
-        printLog(`Diferencia de hora enviada al coordinador: ${diferenciaSegundos} minutos `);
+        res.status(200).json({ diferenciaHora: diferenciaMinutos });
     } catch (error) {
         console.error('Error al calcular y enviar la diferencia de hora:', error);
         res.status(500).json({ error: 'Error al calcular y enviar la diferencia de hora' });
     }
 });
+
+
 
 
 
