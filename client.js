@@ -127,5 +127,7 @@ io.on('connection', socket => {
 
 
 server.listen(port_server, () => {
-    console.log(`Example app listening on port ${port_server}`)
-})
+    const serverUrl = `http://localhost:${port_server}`;
+    console.log(`Cliente ejecutando desde el puerto: ${port_server} `);
+    console.log(`Accede al servidor desde tu navegador utilizando la siguiente URL: ${serverUrl}`);
+});
