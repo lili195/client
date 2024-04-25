@@ -91,7 +91,7 @@ app.post('/diferenciaHora', (req, res) => {
 
         printLog(`CALCULANDO DIFERENCIA --> Hora del cliente: ${formatearHora(horaCliente.getTime())} - Hora del coordinador: ${formatearHora(horaCoordinador.getTime())}`);
 
-        res.send(`Diferencia de hora: ${diferenciaHora} segundos`);
+        res.send(String(diferenciaHora));
 
         printLog(`Diferencia de hora enviada al coordinador: ${diferenciaHora} minutos `);
     } catch (error) {
