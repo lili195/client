@@ -195,9 +195,15 @@ io.on('connection', socket => {
     });
 });
 
+app.get('/infoServidor', (req, res) => {
+    res.json(serverUrl);
+});
+
+const serverUrl = `http://localhost:${port_server}`;
+
+
 
 server.listen(port_server, () => {
-    const serverUrl = `http://localhost:${port_server}`;
     console.log(`Cliente ejecutando desde el puerto: ${port_server} `);
     console.log(`Accede al servidor desde tu navegador utilizando la siguiente URL: ${serverUrl}`);
 });
