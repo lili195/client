@@ -1,16 +1,16 @@
-FROM python:3.12.0
+FROM node
 
 WORKDIR /app
 
-# Copia el archivo requirements.txt al contenedor
-COPY requirements.txt .
+COPY package.json package.json
+COPY package-lock.json package-lock.json
+COPY . .
 
 # Instala las dependencias
-RUN pip install -r requirements.txt
+RUN npm install
 
-# Copia el código de la aplicación al contenedor
-COPY . .
 
 EXPOSE $PORT
 
-CMD ["python", "client.py"]
+# Comando para ejecutar la aplicación
+CMD ["node", "client.js"]
