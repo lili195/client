@@ -6,6 +6,7 @@ const cors = require('cors')
 const axios = require('axios');
 const { Server } = require('socket.io');
 const http = require('http')
+const moment = require('moment-timezone')
 const app = express();
 
 const port_server = process.env.PORT;
@@ -42,8 +43,7 @@ function printLog(message) {
 
 
 const formatearHora = (hora) => {
-    const fecha = new Date(hora);
-    const horaFormateada = `${fecha.getHours()}:${fecha.getMinutes()}:${fecha.getSeconds()}:${fecha.getMilliseconds()}`;
+    const horaFormateada = moment(hora).tz('America/Bogota').format('HH:mm:ss:SSS')
     return horaFormateada;
 };
 
@@ -61,7 +61,7 @@ app.get('/horaCliente', (req, res) => {
 app.post('/horaCoordinador', (req, res) => {
     try {
         const hora_coordinador_str = req.body.horaCliente;
-
+        printLog("Hora recibida:" + req.body.horaCliente);
         hora_coordinador = hora_coordinador_str;
 
         printLog('Hora del coordinador recibida correctamente --> ' + formatearHora(hora_coordinador));
@@ -74,9 +74,9 @@ app.post('/horaCoordinador', (req, res) => {
 
 
 function obtenerHora() {
-    horaCliente = new Date();
-    const desfase_aleatorio = Math.floor(Math.random() * 300000); // Rango de 0 a 5 minutos
-    horaCliente.setMilliseconds(horaCliente.getMilliseconds() + desfase_aleatorio);
+    const horaCliente = new Date();
+    const desfase_aleatorio = Math.floor(Math.random() * 600001) - 300000; // Rango de -5 a +5 minutos
+    horaCliente.setTime(horaCliente.getTime() + desfase_aleatorio);
     return horaCliente;
 }
 
@@ -113,7 +113,7 @@ app.post('/ajustarHora', (req, res) => {
         printLog(`Tiempo a ajustar: ${tiempoAjuste}`)
         ajustarCliente(tiempoAjuste)
 
-        res.status(200).send(`DIFERENCIA RECIBIDA Y ACTUALIZADA POR PARTE DEL CLIENTE --> ${horaActualizada}`)
+        res.status(200).send(`DIFERENCIA RECIBIDA Y ACTUALIZADA POR PARTE DEL CLIENTE --> ${formatearHora(horaActualizada)}`)
     } catch (error) {
         console.error('Error al actualizar la hora', error);
         res.status(500).json({ error: 'Error al actualizar la hora' });
