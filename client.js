@@ -110,13 +110,15 @@ app.post('/ajustarHora', (req, res) => {
         printLog(`Tiempo a ajustar: ${tiempoAjuste}`)
         ajustarCliente(tiempoAjuste)
 
-        res.status(200).send("YESSS")
+        res.status(200).send(`DIFERENCIA RECIBIDA Y ACTUALIZADA POR PARTE DEL CLIENTE --> ${horaActualizada}`)
     } catch (error) {
         console.error('Error al actualizar la hora', error);
         res.status(500).json({ error: 'Error al actualizar la hora' });
     }
 })
 
+
+let horaActualizada = 0;
 const ajustarCliente = async (tiempoAjuste) => {
     let adjustedTimeClient = new Date(horaCliente); // Crear una nueva instancia de Date para evitar modificar la hora original
 
