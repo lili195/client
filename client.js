@@ -28,6 +28,10 @@ const io = new Server(server, {
 });
 
 
+let hora_coordinador = 0;
+let horaCliente = null;
+
+
 function printLog(message) {
     const date = new Date().toLocaleDateString();
     const time = new Date().toLocaleTimeString();
@@ -44,16 +48,14 @@ const formatearHora = (hora) => {
 };
 
 app.get('/horaCliente', (req, res) => {
-    const horaCliente = new Date();
-    const desfase_aleatorio = Math.floor(Math.random() * 300000);
-    horaCliente.setSeconds(horaCliente.getSeconds() + desfase_aleatorio);
-
+    horaCliente = new Date();
+    horaCliente = obtenerHora();
     const horaClienteStr = formatearHora(horaCliente);
     res.json({ horaCliente: horaClienteStr });
 });
 
 
-let hora_coordinador = 0;
+
 
 
 app.post('/horaCoordinador', (req, res) => {
@@ -72,7 +74,7 @@ app.post('/horaCoordinador', (req, res) => {
 
 
 function obtenerHora() {
-    const horaCliente = new Date();
+    horaCliente = new Date();
     const desfase_aleatorio = Math.floor(Math.random() * 300000); // Rango de 0 a 5 minutos
     horaCliente.setMilliseconds(horaCliente.getMilliseconds() + desfase_aleatorio);
     return horaCliente;
@@ -82,8 +84,9 @@ app.post('/diferenciaHora', (req, res) => {
     try {
 
         const horaCoordinador = new Date(hora_coordinador);
+        horaCliente = obtenerHora();
 
-        const horaCliente = obtenerHora();
+        //const horaCliente = obtenerHora();
         printLog('Hora del cliente  --> ' + formatearHora(horaCliente));
 
 
@@ -99,6 +102,71 @@ app.post('/diferenciaHora', (req, res) => {
         res.status(500).json({ error: 'Error al calcular y enviar la diferencia de hora' });
     }
 });
+
+app.post('/ajustarHora', (req, res) => {
+
+    try {
+        printLog('--------------------------------------------------------')
+        const tiempoAjuste = req.body.ajuste
+        printLog(`Tiempo a ajustar: ${tiempoAjuste}`)
+        ajustarCliente(tiempoAjuste)
+
+        res.status(200).send(`DIFERENCIA RECIBIDA Y ACTUALIZADA POR PARTE DEL CLIENTE --> ${horaActualizada}`)
+    } catch (error) {
+        console.error('Error al actualizar la hora', error);
+        res.status(500).json({ error: 'Error al actualizar la hora' });
+    }
+})
+
+
+let horaActualizada = 0;
+const ajustarCliente = async (tiempoAjuste) => {
+    let adjustedTimeClient = new Date(horaCliente); // Crear una nueva instancia de Date para evitar modificar la hora original
+
+    // Obtener los componentes de tiempo actuales
+    const horas = adjustedTimeClient.getHours();
+    const minutos = adjustedTimeClient.getMinutes();
+    const segundos = adjustedTimeClient.getSeconds();
+    const milisegundos = adjustedTimeClient.getMilliseconds();
+
+    // Calcular la cantidad total de minutos a agregar
+    const minutosAgregar = Math.floor(tiempoAjuste);
+    const segundosAgregar = Math.floor((tiempoAjuste - minutosAgregar) * 60); // Convertir el exceso de minutos en segundos
+    const milisegundosAgregar = Math.floor((tiempoAjuste - minutosAgregar - segundosAgregar / 60) * 60000); // Convertir el exceso de segundos en milisegundos
+
+    // Sumar los minutos, segundos y milisegundos
+    let minutosActualizados = minutos + minutosAgregar;
+    let segundosActualizados = segundos + segundosAgregar;
+    let milisegundosActualizados = milisegundos + milisegundosAgregar;
+
+    // Ajustar los segundos si hay exceso de milisegundos
+    if (milisegundosActualizados >= 1000) {
+        segundosActualizados += Math.floor(milisegundosActualizados / 1000);
+        milisegundosActualizados %= 1000;
+    }
+
+    // Ajustar los minutos si hay exceso de segundos
+    if (segundosActualizados >= 60) {
+        minutosActualizados += Math.floor(segundosActualizados / 60);
+        segundosActualizados %= 60;
+    }
+
+    // Ajustar las horas si hay exceso de minutos
+    if (minutosActualizados >= 60) {
+        horas += Math.floor(minutosActualizados / 60);
+        minutosActualizados %= 60;
+    }
+
+    // Establecer los nuevos valores de hora
+    adjustedTimeClient.setHours(horas);
+    adjustedTimeClient.setMinutes(minutosActualizados);
+    adjustedTimeClient.setSeconds(segundosActualizados);
+    adjustedTimeClient.setMilliseconds(milisegundosActualizados);
+
+    horaActualizada = adjustedTimeClient;
+    printLog(`Hora del cliente actualizada: ${formatearHora(horaActualizada)}`);
+    io.emit('ajusteHora', { nuevaHora: formatearHora(horaActualizada) });
+}
 
 
 
