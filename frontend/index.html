@@ -1,12 +1,72 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Time and Logs Display</title>
+    <title>Hora Cliente</title>
+    <style>
+
+        body{
+            background-image: url('fondoCliente.jpeg');
+            opacity: 0.9
+        }
+        /* Estilos para el título */
+        h1 {
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 40px;
+            color: rgb(0, 0, 0);
+            text-align: center;
+            font-weight: bold;
+            background-color: rgb(211, 196, 196);
+            opacity: 0.8;
+        }
+
+        /* Estilos para la hora del cliente */
+        .hora-cliente {
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 40px;
+            color: rgb(15, 92, 52);
+            padding: 10px;
+            border: 2px solid rgb(15, 92, 52);
+            margin: 20px auto; /* Cambiado a margen horizontal automático */
+            box-sizing: border-box;
+            background-color: #fff;
+            text-align: center; 
+        }
+
+        h2 {
+            font-family: 'Arial', sans-serif;
+            font-size: 25px;
+            color: #000000;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+
+        /* Estilos para la lista de logs */
+        #logs {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        #logs li {
+            font-family: Tahoma, sans-serif;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            padding: 10px;
+            background-color: #f9f9f9;
+            overflow-y: auto;
+            max-height: 550px;
+        }
+    </style>
 </head>
+
 <body>
-    <h1>Hora del cliente: <span id="horaCliente"></span></h1>
+    <h1>Hora del cliente</h1>
+    <span id="horaCliente" class="hora-cliente"></span>
+    <h1> <span id="infoServidor"></span></h2>
     <h2>Logs:</h2>
     <ul id="logs"></ul>
 
@@ -21,6 +81,17 @@
             document.getElementById('horaCliente').innerText = data.horaCliente;
         }
 
+        async function mostrarInfoServidor() {
+    const response = await fetch('/infoServidor');
+    const data = await response.json();
+    document.getElementById('infoServidor').innerText = `Servidor: ${data}`;
+}
+
+        // Función para actualizar la hora del cliente
+        function actualizarHoraCliente(nuevaHora) {
+            document.getElementById('horaCliente').innerText = nuevaHora;
+        }
+
         // Función para mostrar logs
         socket.on('logs', data => {
             const logsList = document.getElementById('logs');
@@ -31,9 +102,13 @@
 
         // Mostrar la hora del cliente al cargar la página
         mostrarHoraCliente();
+        mostrarInfoServidor();
 
-        // Actualizar la hora del cliente cada segundo
-        setInterval(mostrarHoraCliente, 1000);
+        // Escuchar la respuesta del ajuste de hora
+        socket.on('ajusteHora', data => {
+            actualizarHoraCliente(data.nuevaHora);
+        });
     </script>
 </body>
+
 </html>
