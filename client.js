@@ -36,9 +36,6 @@ function printLog(message) {
     io.emit('logs', { logs: logMessage });
 }
 
-function sendLogsToClient(logs) {
-    io.emit('logs', { logs: logs });
-}
 
 const formatearHora = (hora) => {
     const fecha = new Date(hora);
@@ -91,13 +88,13 @@ app.post('/diferenciaHora', (req, res) => {
         printLog('Hora del cliente  --> ' + formatearHora(horaCliente));
 
 
-        const diferenciaSegundos = (horaCliente.getTime() - horaCoordinador.getTime())/(1000*60);
+        const diferenciaHora = (horaCliente.getTime() - horaCoordinador.getTime())/(1000*60);
 
         printLog(`CALCULANDO DIFERENCIA --> Hora del cliente: ${formatearHora(horaCliente.getTime())} - Hora del coordinador: ${formatearHora(horaCoordinador.getTime())}`);
 
-        res.send(`Diferencia de hora: ${diferenciaSegundos} segundos`);
+        res.send(`Diferencia de hora: ${diferenciaHora} segundos`);
 
-        printLog(`Diferencia de hora enviada al coordinador: ${diferenciaSegundos} minutos `);
+        printLog(`Diferencia de hora enviada al coordinador: ${diferenciaHora} minutos `);
     } catch (error) {
         console.error('Error al calcular y enviar la diferencia de hora:', error);
         res.status(500).json({ error: 'Error al calcular y enviar la diferencia de hora' });
